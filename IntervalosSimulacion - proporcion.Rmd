@@ -1,0 +1,93 @@
+---
+title: "Generación de intervalos de confianza al 95%"
+author: "Karla E. Juárez Contreras"
+date: '29/10/2023'
+geometry: "left=1cm,right=2.5cm,top=2cm,bottom=2cm"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Generación de intervalos de confianza al 95%
+
+Primero se genera una población de 10000 intervalos de confianza para muestras n=100, mu= np= 100x0.35 = 35, sigma= npq= 100x0.35x065 = 22.75
+
+```{r, out.width="35%"}
+# Se establece una semilla porque se va a usar una función aleatoria
+#de esta manera, se asegura que el resultado sea reproducible
+set.seed(1)
+
+# Se generan 2 vectores numéricos en donde se almacenarán 10000 números
+#en este momento, solo estarán llenos de 0
+lower <- numeric(10000)
+upper <- numeric(10000)
+
+# Se generan 10000 conjuntos de datos, y cada uno de ellos consiste en n=100 números aleatorios 
+#de distribución normal con media =5 y #desviación estándar =5. Para cada uno de esos 
+#10000 conjuntos de datos,se calculan los límites superiores e inferiores del intervalo al 95%
+#considerando mu +- 1.96 * desviación estándar/ raiz cuadrada(n)
+#desviación estandar= 5 y raiz cuadrada(100)=10
+
+for(i in 1:10000) {
+  
+  Y <- rnorm(100, mean = 35, sd = 22.75)
+  lower[i] <- mean(Y) - 1.96 * 22.75 / 10
+  upper[i] <- mean(Y) + 1.96 * 22.75 / 10
+  
+}
+
+
+```
+
+Con la siguiente instrucción, se guardan los límites superiores e inferiores de cada intervalo
+
+```{r, out.width="35%"}
+CIs <- cbind(lower, upper)
+```
+
+A continuación se pregunta en qué intervalos, de los primeros 100 intervalos (1:100) está contenida mu=35. Para ello se pide que el límite inferior (CIs[,1]) sea mayor o igual a 5 y que el límite superior (CIs[,2]) sea menor o igual a 5.
+Los intervalos en donde se indica TRUE son los que si contienen a mu y aquellos en los que se indica FALSE son los que no la contienen
+```{r, out.width="35%"}
+which((CIs[1:100, 1] <= 35 & 35 <= CIs[1:100, 2]))
+```
+Se pide a continuación que identifique en qué intervalos no está mu. Para ello se hace la pregunta anterior pero  un! antes de la definición de los límites. Es decir, se indican qué intervalos de esos primeros 100 no cumplen con qué su límite inferior sea menor o igual a 35, y su límite superior sea mayor o igual a 35. Esos casos se guardan con el nombre ID
+```{r, out.width="35%"}
+which(!(CIs[1:100, 1] <= 35 & 35 <= CIs[1:100, 2]))
+ID <- which(!(CIs[1:100, 1] <= 35 & 35 <= CIs[1:100, 2]))
+```
+Se genera la gráfica, especificando que los intervalos identificados con ID serán coloreados con rojo
+```{r, out.width="70%"}
+plot(0, 
+     xlim = c(20, 50), 
+     ylim = c(1, 100), 
+     ylab = "Muestra", 
+     xlab = "Porcentaje de votos", 
+     main = "Intervalos de confianza")
+
+# establecer colores de la gráfica
+colors <- rep(gray(0.6), 100)
+colors[ID] <- "red"
+
+
+#Se agrega una línea punteada a la altura de mu
+abline(v = 35, lty = 2, col="black", lwd=2)
+
+# Se agregan lineas horizontales que representan los intervalos de confianza
+for(j in 1:100) {
+  
+  lines(c(CIs[j, 1], CIs[j, 2]), 
+        c(j, j), 
+        col = colors[j], 
+        lwd = 2)
+  
+}
+
+```
+
+
+
+
